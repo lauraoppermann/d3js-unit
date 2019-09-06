@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="/unit/d3js/libs/d3.v3.min.js"></script>
+  <script type="text/javascript" src="/unit/d3js/libs/jquery.js"></script>
+
+	<style>
+	body{ font: Arial 5px; text-align: center;}
+	.axis path, .axis line{
+	fill: none;
+	stroke: darkgrey;
+	stroke-width: 0.3;
+	shape-rendering: crispEdges;
+	}
+  .axis text{
+    font-size: 4px;
+  }
+
+	</style>
+</head>
+<body>
+	<script>
+
+
+		var chart = <%- chart %>
+
+		//Set margins and sizes
+		var margin = {
+		top: 20,
+		bottom: 50,
+		right: 30,
+		left: 50
+		};
+
+		var width = chart.width;
+		var height = chart.height;
+
+		//Create x and y scale to scale inputs
+		var xScale = d3.scale.linear().domain([chart.minX, chart.maxX]).range([0, width]);
+		var yScale = d3.scale.linear().domain([chart.maxY, chart.minY]).range([0, height]);
+
+
+		//Create x and y axes
+		var xAxis = d3.svg.axis()
+		    .scale(xScale)
+		    .orient("bottom")
+		    .ticks(10)
+        .tickSize(2,0);
+
+
+		var yAxis = d3.svg.axis()
+		  .scale(yScale)
+		  .orient("left")
+      .ticks(5)
+      .tickSize(2,0)
+
+    d3.selectAll(".xAxis>.tick")
+      .each(function(d, i){
+        d3.select(this).style("font-size","4px");
+      });
+
+		// append the svg object to the body of the page
+		var svg = d3.select("body")
+		  .append("svg")
+		    .attr("width", width + margin.left + margin.right)
+		    .attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+		    .attr("transform",
+		          "translate(" + margin.left + "," + margin.top + ")");
+
+		//Read the data
+		var data = chart.data;
+
+		var path = svg.append('g')
+		    .selectAll("circle")
+		    .data(data)
+		    .enter()
+		    .append("circle")
+		      .attr("cx", function (d) { return xScale(d.x) } )
+		      .attr("cy", function (d) { return yScale(d.y) } )
+		      .attr("r", function (d) { return (d.radius>0 ? xScale(d.radius+d.x)-xScale(d.x) : 0.5 )})
+		      .style("fill", function(d) {
+		      if(d.radius > 0){
+		       return "none";
+		      } else{
+		        return "#c26969";
+		      }
+		      })
+		      .style("stroke", function(d) {
+		      if(d.radius > 0){
+		       return "#8dd6d1";
+		      } else{
+		        return "none";
+		      }
+		      })
+          .style("stroke-width", 0.5)
+
+	  //Add X Axis
+		var x = svg.append("g")
+		  .attr("transform", "translate(0," + height + ")")
+		  .attr("class", "x axis")
+		  .call(xAxis);
+
+	  // Add Y axis
+		var y = svg.append("g")
+		    .call(yAxis)
+		    .attr("class", "y axis");
+
+
+	  // function reloadChartData() {
+	  //   $.get("http://" + chart.host + "/charts/" + chart.id, function(newChart) {
+	  //     rerender(newChart);
+	  //   });
+	  // }
+    //
+	  // function rerender(newChart) {
+	  //   let data = newChart.data;
+    //
+	  //   if (newChart.visibleDatapointsLimit) {
+	  //     data = data.slice(-newChart.visibleDatapointsLimit);
+	  //   }
+    //
+	  //    var circle = svg.select("g").selectAll("circle").data(data);
+    //
+    //      circle.exit().remove();//remove unneeded circles
+    //      circle.enter().append("circle")
+    //                 .attr("r",0);//create any new circles needed
+    //
+    //      //update all circles to new positions
+    //      circle.transition()
+    //       .duration(0.5)
+    //       .attr("cx", function (d) { return xScale(d.date); } )
+	  //     .attr("cy", function (d) { return yScale(d.value); } )
+	  //     .attr("r", function (d) { return(d.radius==0?1 : d.radius*10 ) })
+	  //     .style("fill", function(d) {
+	  //     if(d.radius > 0){
+	  //      return "none";
+	  //     } else{
+	  //       return "red";
+	  //     }
+	  //     })
+	  //     .style("stroke", function(d) {
+	  //     if(d.radius > 0){
+	  //      return "black";
+	  //     } else{
+	  //       return "none";
+	  //     }
+	  //     })
+	  // }
+	  // if (chart.dataRefreshInterval) {
+	  //   window.setInterval(reloadChartData, chart.dataRefreshInterval);
+	  // }
+
+	</script>
+</body>
+</html>
