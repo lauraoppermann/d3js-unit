@@ -23,6 +23,7 @@
 
 
 		var chart = <%- chart %>
+    var id = <%- id %>
 
 		//Set margins and sizes
 		var margin = {
@@ -69,8 +70,8 @@
 		          "translate(" + margin.left + "," + margin.top + ")");
 
 		//Read the data
-		var data = chart.data;
-
+		var data = chart.data[chart.data.length-1];
+    console.log(data);
 		var path = svg.append('g')
 		    .selectAll("circle")
 		    .data(data)
@@ -78,7 +79,7 @@
 		    .append("circle")
 		      .attr("cx", function (d) { return xScale(d.x) } )
 		      .attr("cy", function (d) { return yScale(d.y) } )
-		      .attr("r", function (d) { return (d.radius>0 ? xScale(d.radius+d.x)-xScale(d.x) : 0.5 )})
+		      .attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x))*0.8 : 0.5 )})
 		      .style("fill", function(d) {
 		      if(d.radius > 0){
 		       return "none";
@@ -107,49 +108,50 @@
 		    .attr("class", "y axis");
 
 
-	  // function reloadChartData() {
-	  //   $.get("http://" + chart.host + "/charts/" + chart.id, function(newChart) {
-	  //     rerender(newChart);
-	  //   });
-	  // }
-    //
-	  // function rerender(newChart) {
-	  //   let data = newChart.data;
-    //
-	  //   if (newChart.visibleDatapointsLimit) {
-	  //     data = data.slice(-newChart.visibleDatapointsLimit);
-	  //   }
-    //
-	  //    var circle = svg.select("g").selectAll("circle").data(data);
-    //
-    //      circle.exit().remove();//remove unneeded circles
-    //      circle.enter().append("circle")
-    //                 .attr("r",0);//create any new circles needed
-    //
-    //      //update all circles to new positions
-    //      circle.transition()
-    //       .duration(0.5)
-    //       .attr("cx", function (d) { return xScale(d.date); } )
-	  //     .attr("cy", function (d) { return yScale(d.value); } )
-	  //     .attr("r", function (d) { return(d.radius==0?1 : d.radius*10 ) })
-	  //     .style("fill", function(d) {
-	  //     if(d.radius > 0){
-	  //      return "none";
-	  //     } else{
-	  //       return "red";
-	  //     }
-	  //     })
-	  //     .style("stroke", function(d) {
-	  //     if(d.radius > 0){
-	  //      return "black";
-	  //     } else{
-	  //       return "none";
-	  //     }
-	  //     })
-	  // }
-	  // if (chart.dataRefreshInterval) {
-	  //   window.setInterval(reloadChartData, chart.dataRefreshInterval);
-	  // }
+	  function reloadChartData() {
+	    $.get("http://localhost:8000/data/"+id ,function(newChart) {
+	      rerender(newChart);
+	    });
+	  }
+
+	  function rerender(newChart) {
+	    let data = newChart.data.slice(-1)[0];
+
+	    if (newChart.visibleDatapointsLimit) {
+	      data = data.slice(-newChart.visibleDatapointsLimit);
+	    }
+	     var circle = svg.select("g").selectAll("circle").data(data);
+
+         circle.exit().remove();//remove unneeded circles
+         circle.enter().append("circle")
+                    .attr("r",0);//create any new circles needed
+
+         //update all circles to new positions
+         circle.transition()
+          .duration(0.5)
+          .attr("cx", function (d) { return xScale(d.x) } )
+ 		      .attr("cy", function (d) { return yScale(d.y) } )
+ 		      .attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x))*0.8 : 0.5 )})
+ 		      .style("fill", function(d) {
+ 		      if(d.radius > 0){
+ 		       return "none";
+ 		      } else{
+ 		        return "#c26969";
+ 		      }
+ 		      })
+ 		      .style("stroke", function(d) {
+ 		      if(d.radius > 0){
+ 		       return "#8dd6d1";
+ 		      } else{
+ 		        return "none";
+ 		      }
+ 		      })
+           .style("stroke-width", 0.5)
+
+	  }
+	  if (chart.dataRefreshInterval) {
+	    window.setInterval(reloadChartData, chart.dataRefreshInterval);
+	  }
 
 	</script>
 </body>
