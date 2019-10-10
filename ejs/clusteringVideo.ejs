@@ -31,11 +31,22 @@
       var begin = currDataPoint - chart.visibleDatapointsLimit < 0 ? 0 : currDataPoint - chart.visibleDatapointsLimit;
       var end = currDataPoint + 1;
 
-      return chart.data.slice(begin, end);
+      return chart.data.points.slice(begin, end);
     }
 
-    return chart.data.slice(0, currDataPoint + 1);
+    return chart.data.points.slice(0, currDataPoint + 1);
   }
+
+	function getVisibleCluster(chart) {
+		var visible = chart.data.cluster[chart.data.points[currDataPoint].timeStamp];
+		visible = visible.map(function(c) {
+				c.x = Number(c.x);
+				c.y = Number(c.y);
+				c.radius = Number(c.radius);
+				return c;
+		});
+		return visible;
+	}
 
   var chart = <%- chart %>;
 
@@ -43,12 +54,23 @@
   chart.height = chart.height ? Number(chart.height): 768;
   chart.dataRefreshInterval = chart.dataRefreshInterval ? Number(chart.dataRefreshInterval) : 1000;
   chart.visibleDatapointsLimit = chart.visibleDatapointsLimit ? Number(chart.visibleDatapointsLimit) : null;
-  chart.data = chart.data.map(function(d) {
+
+	// format the points
+  chart.data.points = chart.data.points.map(function(d) {
 	  d.x = Number(d.x);
 		d.y = Number(d.y);
 		d.radius = Number(d.radius);
     return d;
   });
+
+	// chart.data.cluster = chart.data.cluster.map(function(d) {
+	// 	return d.map(function(c) {
+	// 		c.x = Number(c.x);
+	// 	 	c.y = Number(c.y);
+	// 	 	c.radius = Number(c.radius);
+	// 		return c;
+	// 	})
+  // });
 
   //Set margins and sizes
   var margin = {
@@ -86,9 +108,10 @@
       d3.select(this).style("font-size","4px");
     });
 
-  var data = chart.data;
-
-  var visibleData = getVisibleDatapoints(chart);
+	var data = chart.data.points;
+  var visiblePoints = getVisibleDatapoints(chart);
+	var visibleCluster = getVisibleCluster(chart);
+	var visibleData = visiblePoints.concat(visibleCluster);
 
   //Create an SVG element and append it to the DOM
   var svg = d3.select("#chart-container")
@@ -113,29 +136,29 @@
       .style("font-size", "8px")
       .text(visibleData[currDataPoint].timeStamp);
 
-	var path = svg.append('g')
-    .selectAll("circle")
-    .data(visibleData)
-    .enter()
-    .append("circle")
-      .attr("cx", function (d) { return xScale(d.x) } )
-      .attr("cy", function (d) { return yScale(d.y) } )
-      .attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x)) : (xScale(0.2+d.x)-xScale(d.x)) )})
-      .style("fill", function(d) {
-      if(d.radius > 0){
-       return "none";
-      } else{
-        return "#c26969";
-      }
-      })
-      .style("stroke", function(d) {
-      if(d.radius > 0){
-       return "#8dd6d1";
-      } else{
-        return "none";
-      }
-      })
-      .style("stroke-width", 0.5)
+			var path = svg.append('g')
+					.selectAll("circle")
+					.data(visibleData)
+					.enter()
+					.append("circle")
+						.attr("cx", function (d) { return xScale(d.x) } )
+						.attr("cy", function (d) { return yScale(d.y) } )
+						.attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x)) : xScale(0.2+d.x)-xScale(d.x) )})
+						.style("fill", function(d) {
+						if(d.radius > 0){
+						 return "none";
+						} else{
+							return "#c26969";
+						}
+						})
+						.style("stroke", function(d) {
+						if(d.radius > 0){
+						 return "#8dd6d1";
+						} else{
+							return "none";
+						}
+						})
+						.style("stroke-width", 0.5)
 
     //Add X Axis
   var x = svg.append("svg:g")
@@ -160,63 +183,58 @@
   function rerender() {
 
     currDataPoint++;
-		console.log(currDataPoint);
-
-    visibleData = getVisibleDatapoints(chart);
-
+    visiblePoints = getVisibleDatapoints(chart);
+		visibleCluster = getVisibleCluster(chart);
+		visibleData = visiblePoints.concat(visibleCluster);
     // Select the section we want to apply our changes to
     // var svg = d3.select("#chart").transition();
 
-			var timeStamp = svg.select("#timeStamp").text(visibleData[currDataPoint].timeStamp);
+			var timeStamp = svg.select("#timeStamp").text(data[currDataPoint].timeStamp);
+			svg.select("g").selectAll("circle").remove();
 
-			 var circle = svg.select("g").selectAll("circle").data(visibleData);
+			var circle = svg.select('g')
+			    .selectAll("circle")
+			    .data(visibleData)
+			    .enter()
+			    .append("circle")
+			      .attr("cx", function (d) { return xScale(d.x) } )
+			      .attr("cy", function (d) { return yScale(d.y) } )
+			      .attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x)) : xScale(0.2+d.x)-xScale(d.x) )})
+			      .style("fill", function(d) {
+			      if(d.radius > 0){
+			       return "none";
+			      } else{
+			        return "#c26969";
+			      }
+			      })
+			      .style("stroke", function(d) {
+			      if(d.radius > 0){
+			       return "#8dd6d1";
+			      } else{
+			        return "none";
+			      }
+			      })
+	          .style("stroke-width", 0.5)
 
-				 circle.exit().remove();//remove unneeded circles
-				 circle.enter().append("circle")
-										.attr("r",0);//create any new circles needed
-
-				 // update all circles to new positions
-				 circle.transition()
-					.duration(chart.dataRefreshInterval)
-					.attr("cx", function (d) { return xScale(d.x) } )
-					.attr("cy", function (d) { return yScale(d.y) } )
-					.attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x)) : (xScale(0.2+d.x)-xScale(d.x)) )})
-					.style("fill", function(d) {
-					if(d.radius > 0){
-					 return "none";
-					} else{
-						return "#c26969";
-					}
-					})
-					.style("stroke", function(d) {
-					if(d.radius > 0){
-					 return "#8dd6d1";
-					} else{
-						return "none";
-					}
-					})
-					 .style("stroke-width", 0.5)
-					 .each('end', onTransitionEnd);
-  }
-
-  function onTransitionEnd() {
-    if (currDataPoint >= data.length - 1) {
-      endTime = Date.now();
-      console.log("data max reached");
-      console.log(endTime - startTime);
-      sendStopEvent();
-    } else {
-      rerender();
-    }
+			 if(currDataPoint >= data.length - 1){
+					endTime = Date.now();
+					console.log("data max reached");
+					console.log(endTime - startTime);
+					clearInterval(refreshing);
+					sendStopEvent();
+				}
   }
 
   var startTime;
   var endTime;
+	var refreshing;
 
   function start() {
     $("#start").prop("disabled", true);
     startTime = Date.now();
-    rerender();
+		if(chart.dataRefreshInterval){
+			refreshing = window.setInterval(rerender, chart.dataRefreshInterval);
+		}
   }
 
   function sendStopEvent() {
