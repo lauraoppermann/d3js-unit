@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script type="text/javascript" src="/unit/d3js/libs/d3.v3.min.js"></script>
-  <script type="text/javascript" src="/unit/d3js/libs/jquery.js"></script>
 
 	<style>
-	body{ font: Arial 5px; text-align: center;}
+	body{ font: Arial 5px; text-align: center; background: white}
 	.axis path, .axis line{
 	fill: none;
 	stroke: darkgrey;
@@ -19,7 +17,10 @@
 	</style>
 </head>
 <body>
-	<script>
+  <script type="text/javascript" src="/unit/d3js/libs/d3.v3.min.js"></script>
+  <script type="text/javascript" src="/unit/d3js/libs/jquery.js"></script>
+
+	<script type="text/javascript">
 
 
 		var chart = <%- chart %>
@@ -69,9 +70,24 @@
 		    .attr("transform",
 		          "translate(" + margin.left + "," + margin.top + ")");
 
+    svg.append("text")
+        .attr("x", (width / 2))
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .text(chart.title);
+
+
+    svg.append("text")
+      .attr("id", "timeStamp")
+        .attr("x", (width / 2))
+        .attr("y", margin.top+height)
+        .attr("text-anchor", "middle")
+        .style("font-size", "8px")
+        .text(chart.timeStamp);
+
 		//Read the data
-		var data = chart.data[chart.data.length-1];
-    console.log(data);
+		var data = chart.data;
 		var path = svg.append('g')
 		    .selectAll("circle")
 		    .data(data)
@@ -107,51 +123,6 @@
 		    .call(yAxis)
 		    .attr("class", "y axis");
 
-
-	  function reloadChartData() {
-	    $.get("http://localhost:8000/data/"+id ,function(newChart) {
-	      rerender(newChart);
-	    });
-	  }
-
-	  function rerender(newChart) {
-	    let data = newChart.data.slice(-1)[0];
-
-	    if (newChart.visibleDatapointsLimit) {
-	      data = data.slice(-newChart.visibleDatapointsLimit);
-	    }
-	     var circle = svg.select("g").selectAll("circle").data(data);
-
-         circle.exit().remove();//remove unneeded circles
-         circle.enter().append("circle")
-                    .attr("r",0);//create any new circles needed
-
-         //update all circles to new positions
-         circle.transition()
-          .duration(0.5)
-          .attr("cx", function (d) { return xScale(d.x) } )
- 		      .attr("cy", function (d) { return yScale(d.y) } )
- 		      .attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x))*0.8 : 0.5 )})
- 		      .style("fill", function(d) {
- 		      if(d.radius > 0){
- 		       return "none";
- 		      } else{
- 		        return "#c26969";
- 		      }
- 		      })
- 		      .style("stroke", function(d) {
- 		      if(d.radius > 0){
- 		       return "#8dd6d1";
- 		      } else{
- 		        return "none";
- 		      }
- 		      })
-           .style("stroke-width", 0.5)
-
-	  }
-	  if (chart.dataRefreshInterval) {
-	    window.setInterval(reloadChartData, chart.dataRefreshInterval);
-	  }
 
 	</script>
 </body>
