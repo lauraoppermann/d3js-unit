@@ -3,20 +3,24 @@
 <head>
 
 	<style>
-	body{ font: Arial 5px; text-align: center; background: white}
-	.axis path, .axis line{
-	fill: none;
-	stroke: darkgrey;
-	stroke-width: 0.3;
-	shape-rendering: crispEdges;
+	body {
+		font: Arial 12px;
+		text-align: center;
+		background-color: white;
 	}
-  .axis text{
-    font-size: 4px;
-  }
+
+	.axis path, .axis line {
+		fill: none;
+		stroke: black;
+		stroke-width: 1;
+		shape-rendering: crispEdges;
+	}
 
 	</style>
 </head>
 <body>
+</body>
+
   <script type="text/javascript" src="/unit/d3js/libs/d3.v3.min.js"></script>
   <script type="text/javascript" src="/unit/d3js/libs/jquery.js"></script>
 
@@ -24,24 +28,37 @@
 
 
 		var chart = <%- chart %>
-    var id = <%- id %>
 
 		//Set margins and sizes
 		var margin = {
-		top: 20,
+		top: 60,
 		bottom: 50,
 		right: 30,
 		left: 50
 		};
 
-		var width = chart.width;
-		var height = chart.height;
-
+		var width = Number(chart.width) || 200;
+		var height = Number(chart.height) || 200;
 		//Create x and y scale to scale inputs
-		var xScale = d3.scale.linear().domain([chart.minX, chart.maxX]).range([0, width]);
-		var yScale = d3.scale.linear().domain([chart.maxY, chart.minY]).range([0, height]);
+		var xScale = d3.scale.linear().domain([chart.minX||0, chart.maxX||0]).range([0, width]);
+		var yScale = d3.scale.linear().domain([chart.maxY||200, chart.minY||200]).range([0, height]);
 
+		function getVisibleCluster(chart) {
+			var points = chart.data.points
+			var cluster = chart.data.cluster;
+			var visible = [];
 
+			for (var key in cluster) {
+				cluster[key].map(function(c){
+					c.x = Number(c.x);
+					c.y = Number(c.y);
+					c.radius = Number(c.radius);
+					visible.push(c);
+					return c;
+				});
+			}
+			return visible;
+		}
 		//Create x and y axes
 		var xAxis = d3.svg.axis()
 		    .scale(xScale)
@@ -61,6 +78,19 @@
         d3.select(this).style("font-size","4px");
       });
 
+		//Read the data
+		var points = chart.data.points;
+		var data = points.map(function(d){
+			d.x = Number(d.x);
+			d.y = Number(d.y);
+			d.radius = Number(d.radius);
+			return d;
+		});
+
+		var visibleCluster = getVisibleCluster(chart);
+		var visibleData = data.concat(visibleCluster);
+
+
 		// append the svg object to the body of the page
 		var svg = d3.select("body")
 		  .append("svg")
@@ -70,42 +100,39 @@
 		    .attr("transform",
 		          "translate(" + margin.left + "," + margin.top + ")");
 
-    svg.append("text")
-        .attr("x", (width / 2))
-        .attr("y", 0 - (margin.top / 2))
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .text(chart.title);
+		svg.append("text")
+					.attr("x", (width / 2))
+					.attr("y", 0 - (margin.top / 2))
+					.attr("text-anchor", "middle")
+					.style("font-size", "30px")
+					.text(chart.title);
 
+		svg.append("text")
+				.attr("id", "timeStamp")
+				.attr("x", (width / 2))
+				.attr("y", margin.top-16+height)
+				.attr("text-anchor", "middle")
+				.style("font-size", "20px")
+				.text(visibleData[visibleData.length-1].timeStamp);
 
-    svg.append("text")
-      .attr("id", "timeStamp")
-        .attr("x", (width / 2))
-        .attr("y", margin.top+height)
-        .attr("text-anchor", "middle")
-        .style("font-size", "8px")
-        .text(chart.timeStamp);
-
-		//Read the data
-		var data = chart.data;
 		var path = svg.append('g')
 		    .selectAll("circle")
-		    .data(data)
+		    .data(visibleData)
 		    .enter()
 		    .append("circle")
 		      .attr("cx", function (d) { return xScale(d.x) } )
 		      .attr("cy", function (d) { return yScale(d.y) } )
-		      .attr("r", function (d) { return (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x))*0.8 : 0.5 )})
+		      .attr("r", function (d) { return  (d.radius>0 ? (xScale(d.radius+d.x)-xScale(d.x)) : xScale(0.2+d.x)-xScale(d.x))})
 		      .style("fill", function(d) {
 		      if(d.radius > 0){
 		       return "none";
 		      } else{
-		        return "#c26969";
+		        return "#5882FA";
 		      }
 		      })
 		      .style("stroke", function(d) {
 		      if(d.radius > 0){
-		       return "#8dd6d1";
+		       return "#FF0040";
 		      } else{
 		        return "none";
 		      }
@@ -125,5 +152,4 @@
 
 
 	</script>
-</body>
 </html>
