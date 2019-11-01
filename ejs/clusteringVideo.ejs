@@ -5,7 +5,8 @@
   <script type="text/javascript" src="/unit/d3js/libs/jquery.js"></script>
   <style>
     body {
-      font: Arial 12px;
+      font-family: Arial;
+      font-size: 12px;
       text-align: center;
       background-color: white;
     }
@@ -15,6 +16,10 @@
       stroke: black;
       stroke-width: 1;
       shape-rendering: crispEdges;
+    }
+
+    .axisText{
+      font-size: 18px;
     }
   </style>
 </head>
@@ -63,29 +68,20 @@
     return d;
   });
 
-	// chart.data.cluster = chart.data.cluster.map(function(d) {
-	// 	return d.map(function(c) {
-	// 		c.x = Number(c.x);
-	// 	 	c.y = Number(c.y);
-	// 	 	c.radius = Number(c.radius);
-	// 		return c;
-	// 	})
-  // });
-
   //Set margins and sizes
   var margin = {
-    top: 20,
-    bottom: 50,
-    right: 30,
-    left: 50
+  top: 60,
+  bottom: 50,
+  right: 30,
+  left: 50
   };
 
-  var width = chart.width;
-  var height = chart.height;
+  var width = Number(chart.width) || 200;
+  var height = Number(chart.height) || 200;
 
   //Create x and y scale to scale inputs
-	var xScale = d3.scale.linear().domain([chart.minX, chart.maxX]).range([0, width]);
-	var yScale = d3.scale.linear().domain([chart.maxY, chart.minY]).range([0, height]);
+  var xScale = d3.scale.linear().domain([chart.minX||0, chart.maxX||0]).range([0, width]);
+  var yScale = d3.scale.linear().domain([chart.maxY||200, chart.minY||200]).range([0, height]);
 
   //Create x and y axes
 	//Create x and y axes
@@ -113,6 +109,9 @@
 	var visibleCluster = getVisibleCluster(chart);
 	var visibleData = visiblePoints.concat(visibleCluster);
 
+  var clusterColor = chart.clusterColor || "#8dd6d1";
+  var pointColor = chart.pointColor || "#c26969";
+
   //Create an SVG element and append it to the DOM
   var svg = d3.select("#chart-container")
     .insert("svg:svg")
@@ -125,15 +124,15 @@
         .attr("x", (width / 2))
         .attr("y", 0 - (margin.top / 2))
         .attr("text-anchor", "middle")
-        .style("font-size", "14px")
+        .style("font-size", "30px")
         .text(chart.title);
 
   svg.append("text")
       .attr("id", "timeStamp")
       .attr("x", (width / 2))
-      .attr("y", margin.top+height)
+      .attr("y", margin.top-16+height)
       .attr("text-anchor", "middle")
-      .style("font-size", "8px")
+      .style("font-size", "20px")
       .text(visibleData[currDataPoint].timeStamp);
 
 			var path = svg.append('g')
@@ -148,12 +147,12 @@
 						if(d.radius > 0){
 						 return "none";
 						} else{
-							return "#c26969";
+							return pointColor;
 						}
 						})
 						.style("stroke", function(d) {
 						if(d.radius > 0){
-						 return "#8dd6d1";
+						 return clusterColor;
 						} else{
 							return "none";
 						}
@@ -172,13 +171,23 @@
     .attr("class", "y axis");
 
   //Add label to Y axis
+  x.append("svg:text")
+    .attr("fill", "#000")
+    .attr("class", "axisText")
+    .attr("text-anchor", "end")
+    .attr("dy", "-0.71em")
+    .attr("x", width)
+    .text(chart.yLabel|| "");
+
+  //Add label to Y axis
   y.append("svg:text")
     .attr("fill", "#000")
+    .attr("class", "axisText")
     .attr("transform", "rotate(-90)")
     .attr("y", 6)
     .attr("dy", "0.71em")
     .attr("text-anchor", "end")
-    .text("value");
+    .text(chart.yLabel|| "");
 
   function rerender() {
 
@@ -204,22 +213,20 @@
 			      if(d.radius > 0){
 			       return "none";
 			      } else{
-			        return "#c26969";
+			        return pointColor;
 			      }
 			      })
 			      .style("stroke", function(d) {
 			      if(d.radius > 0){
 			       return "#8dd6d1";
 			      } else{
-			        return "none";
+			        return clusterColor;
 			      }
 			      })
 	          .style("stroke-width", 0.5)
 
 			 if(currDataPoint >= data.length - 1){
 					endTime = Date.now();
-					console.log("data max reached");
-					console.log(endTime - startTime);
 					clearInterval(refreshing);
 					sendStopEvent();
 				}

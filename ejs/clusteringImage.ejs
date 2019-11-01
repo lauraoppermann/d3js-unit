@@ -15,7 +15,9 @@
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}
-
+	.axisText{
+		font-size: 18px;
+	}
 	</style>
 </head>
 <body>
@@ -26,6 +28,7 @@
 
 	<script type="text/javascript">
 
+	const time = new Date();
 
 		var chart = <%- chart %>
 
@@ -90,6 +93,8 @@
 		var visibleCluster = getVisibleCluster(chart);
 		var visibleData = data.concat(visibleCluster);
 
+		var clusterColor = chart.clusterColor || "#8dd6d1";
+		var pointColor = chart.pointColor || "#c26969";
 
 		// append the svg object to the body of the page
 		var svg = d3.select("body")
@@ -127,12 +132,12 @@
 		      if(d.radius > 0){
 		       return "none";
 		      } else{
-		        return "#5882FA";
+		        return pointColor;
 		      }
 		      })
 		      .style("stroke", function(d) {
 		      if(d.radius > 0){
-		       return "#FF0040";
+		       return clusterColor;
 		      } else{
 		        return "none";
 		      }
@@ -150,6 +155,27 @@
 		    .call(yAxis)
 		    .attr("class", "y axis");
 
+		//Add label to Y axis
+	  x.append("svg:text")
+	    .attr("fill", "#000")
+	    .attr("class", "axisText")
+	    .attr("text-anchor", "end")
+	    .attr("dy", "-0.71em")
+	    .attr("x", width)
+	    .text(chart.yLabel|| "");
+
+	  //Add label to Y axis
+	  y.append("svg:text")
+	    .attr("fill", "#000")
+	    .attr("class", "axisText")
+	    .attr("transform", "rotate(-90)")
+	    .attr("y", 6)
+	    .attr("dy", "0.71em")
+	    .attr("text-anchor", "end")
+	    .text(chart.yLabel|| "");
+
+		// var endtime = new Date();
+		// console.log("result", endtime.getTime() - time.getTime() );
 
 	</script>
 </html>
