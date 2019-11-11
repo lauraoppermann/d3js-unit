@@ -2,8 +2,11 @@
 
 This Unit can be used for [VisuEngine](https://github.com/lauraoppermann/VisuEngineClone). It is based on [D3.js](https://d3js.org/).
 
-## What to mind when usind Cluster Visualization
+## What to mind when using Cluster Visualization
 The EJS files clusteringImage, clusteringLiveStreaming and clusteringVideo allow you to build clustering visualizations with or without animation.
+
+### Example chart 
+![ExampleGraph2](https://user-images.githubusercontent.com/50273734/68613980-3bb26380-04c0-11ea-8ab9-0633b0cfd937.PNG)
 
 ### What parameters to set for cluster visualization
 
