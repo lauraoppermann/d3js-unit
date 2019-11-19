@@ -110,8 +110,8 @@
 	var visibleCluster = getVisibleCluster(chart);
 	var visibleData = visiblePoints.concat(visibleCluster);
 
-  var clusterColor = chart.clusterColor || "#8dd6d1";
-  var pointColor = chart.pointColor || "#c26969";
+  var clusterColor = chart.clusterColor || "#1d2ec2";
+  var pointColor = chart.pointColor || "#c21d3b";
 
   //Create an SVG element and append it to the DOM
   var svg = d3.select("#chart-container")
@@ -219,9 +219,9 @@
 			      })
 			      .style("stroke", function(d) {
 			      if(d.radius > 0){
-			       return "#8dd6d1";
+			       return clusterColor;
 			      } else{
-			        return clusterColor;
+			        return pointColor ;
 			      }
 			      })
 	          .style("stroke-width", 0.5)
